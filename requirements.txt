@@ -1,0 +1,10 @@
+accelerate
+diffusers
+medmnist
+tqdm
+scikit-learn
+pandas
+matplotlib
+tensorboard
+scipy
+clean-fid

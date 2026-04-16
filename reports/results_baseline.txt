@@ -1,0 +1,4 @@
+Scenario: baseline
+ACC: 0.8894
+F1: 0.9180
+AUC: 0.9682

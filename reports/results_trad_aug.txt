@@ -1,0 +1,4 @@
+Scenario: trad_aug
+ACC: 0.8349
+F1: 0.8831
+AUC: 0.9706

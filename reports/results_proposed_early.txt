@@ -1,0 +1,4 @@
+Scenario: proposed_early
+ACC: 0.8830
+F1: 0.9142
+AUC: 0.9704

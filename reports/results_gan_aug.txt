@@ -1,0 +1,4 @@
+Scenario: gan_aug
+ACC: 0.8446
+F1: 0.8886
+AUC: 0.9666

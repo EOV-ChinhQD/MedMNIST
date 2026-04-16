@@ -1,0 +1,30 @@
+# Environments
+.venv/
+venv/
+ENV/
+__pycache__/
+*.pyc
+
+# Data
+data/
+MedMNIST/
+*.npz
+
+# Artifacts & Models
+artifacts/
+logs/
+*.pt
+*.pth
+*.pkl
+
+# Reports & Figures
+# reports/figures/  <-- Keep the figures for README/Report or ignore them? 
+# Usually, we ignore large figures or all generated plots
+reports/figures/*.png
+reports/figures/*.jpg
+
+# OS files
+.DS_Store
+.vscode/
+.idea/
+.gemini/
