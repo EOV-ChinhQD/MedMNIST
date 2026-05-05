@@ -1,0 +1,4 @@
+Scenario: latent_diffusion_final
+ACC: 0.8782
+F1: 0.9106
+AUC: 0.9615

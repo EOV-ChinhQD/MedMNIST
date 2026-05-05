@@ -1,4 +1,4 @@
 Scenario: uncond_aug
-ACC: 0.8526
-F1: 0.8933
-AUC: 0.9526
+ACC: 0.9119
+F1: 0.9301
+AUC: 0.9659

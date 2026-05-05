@@ -20,8 +20,8 @@ logs/
 # Reports & Figures
 # reports/figures/  <-- Keep the figures for README/Report or ignore them? 
 # Usually, we ignore large figures or all generated plots
-reports/figures/*.png
-reports/figures/*.jpg
+# reports/figures/*.png
+# reports/figures/*.jpg
 
 # OS files
 .DS_Store

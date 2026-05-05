@@ -1,0 +1,4 @@
+Scenario: latent_cfg_trial
+ACC: 0.8718
+F1: 0.9070
+AUC: 0.9760
