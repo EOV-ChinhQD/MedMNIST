@@ -1,8 +1,8 @@
 import os
 import logging
-from datetime import datetime
+from typing import Dict, Any
 
-def setup_logger(name, log_file, level=logging.INFO):
+def setup_logger(name: str, log_file: str, level: int = logging.INFO) -> logging.Logger:
     """To setup as many loggers as you want"""
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     
@@ -21,15 +21,18 @@ def setup_logger(name, log_file, level=logging.INFO):
     return logger
 
 class ETL_Logger:
-    def __init__(self, log_dir='logs'):
+    """
+    Logger class tailored for ETL (Extract, Transform, Load) operations.
+    """
+    def __init__(self, log_dir: str = 'logs') -> None:
         os.makedirs(log_dir, exist_ok=True)
-        self.logger = setup_logger('etl_logger', os.path.join(log_dir, 'etl.log'))
+        self.logger: logging.Logger = setup_logger('etl_logger', os.path.join(log_dir, 'etl.log'))
         
-    def log_transformation(self, message):
+    def log_transformation(self, message: str) -> None:
         self.logger.info(f"[TRANSFORM] {message}")
         
-    def log_metadata(self, metadata):
+    def log_metadata(self, metadata: Dict[str, Any]) -> None:
         self.logger.info(f"[METADATA] {metadata}")
 
-    def log_quality_check(self, check_name, status, details=""):
+    def log_quality_check(self, check_name: str, status: str, details: str = "") -> None:
         self.logger.info(f"[QUALITY] {check_name}: {status} | {details}")

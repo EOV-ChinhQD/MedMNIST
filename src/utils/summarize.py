@@ -1,19 +1,23 @@
 import os
 import glob
 import pandas as pd
+from typing import List, Dict, Any
 
-def summarize_results():
-    files = glob.glob('reports/results_*.txt')
-    results = []
+def summarize_results() -> None:
+    """
+    Summarizes evaluation results from text files into a single Markdown table.
+    """
+    files: List[str] = glob.glob('reports/results_*.txt')
+    results: List[Dict[str, Any]] = []
     
     for f in files:
         with open(f, 'r') as file:
             lines = file.readlines()
             name = lines[0].split(': ')[1].strip()
             acc = float(lines[1].split(': ')[1].strip())
-            f1 = float(lines[2].split(': ')[1].strip())
+            f1_score = float(lines[2].split(': ')[1].strip())
             auc = float(lines[3].split(': ')[1].strip())
-            results.append({'Scenario': name, 'ACC': acc, 'F1': f1, 'AUC': auc})
+            results.append({'Scenario': name, 'ACC': acc, 'F1': f1_score, 'AUC': auc})
             
     df = pd.DataFrame(results)
     if not df.empty:

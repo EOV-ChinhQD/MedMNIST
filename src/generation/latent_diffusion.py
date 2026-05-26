@@ -3,76 +3,74 @@ import numpy as np
 import os
 from src.models.vae import get_vae_model
 from src.models.latent_unet import LatentConditionalUNet, get_latent_scheduler
-from PIL import Image
-from tqdm.auto import tqdm
+from typing import List
 
-def generate_latent_diffusion_data(vae_path, ldm_path, output_npz, num_samples_per_class=1000):
+def generate_latent_diffusion_data(vae_path: str, ldm_path: str, output_npz: str, num_samples_per_class: int = 1000) -> None:
+    """
+    Generates synthetic data using a trained Latent Diffusion Model (LDM) and VAE Decoder.
+    """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # 1. Load VAE (Decoder)
     vae = get_vae_model().to(device)
-    vae.load_state_dict(torch.load(vae_path))
+    vae.load_state_dict(torch.load(vae_path, map_location=device))
     vae.eval()
     
     # 2. Load Latent UNet
     ldm = LatentConditionalUNet().to(device)
-    ldm.load_state_dict(torch.load(ldm_path))
+    ldm.load_state_dict(torch.load(ldm_path, map_location=device))
     ldm.eval()
     
     scheduler = get_latent_scheduler()
     
-    all_images = []
-    all_labels = []
+    all_images: List[np.ndarray] = []
+    all_labels: List[int] = []
     
     print(f"Generating synthetic data via Latent Diffusion...")
     for label in [0, 1]:
         print(f"Generating class {label} ({'Normal' if label==0 else 'Pneumonia'})...")
-        for i in tqdm(range(0, num_samples_per_class, 20)): # Batch size 20
-            batch_size = min(20, num_samples_per_class - i)
+        for i in range(0, num_samples_per_class, 20): # Batch size 20
+            batch_size: int = min(20, num_samples_per_class - i)
             
             # A. Sampling in Latent Space (4, 16, 16)
             latents = torch.randn(batch_size, 4, 16, 16).to(device)
             labels = torch.full((batch_size,), label, dtype=torch.long).to(device)
-            uncond_labels = torch.full((batch_size,), 2, dtype=torch.long).to(device) # Nhãn '2' là null
+            uncond_labels = torch.full((batch_size,), 2, dtype=torch.long).to(device) # '2' is null label
             
-            guidance_scale = 5.0 # Tỉ lệ hướng dẫn (Gợi ý: 3.0 - 7.5)
+            guidance_scale: float = 5.0 # CFG Scale
             
             scheduler.set_timesteps(50)
             for t in scheduler.timesteps:
                 with torch.no_grad():
-                    # Dự đoán có nhãn và không nhãn để thực hiện CFG
-                    # Ghép đôi batch để tính toán song song
+                    # Predict conditional and unconditional noise for Classifier-Free Guidance
                     latent_model_input = torch.cat([latents] * 2)
                     labels_input = torch.cat([labels, uncond_labels])
                     
                     noise_pred = ldm(latent_model_input, t, labels_input)
-                    
-                    # Tách kết quả
                     noise_pred_uncond, noise_pred_cond = noise_pred.chunk(2)
                     
-                    # Công thức CFG: Đẩy mạnh đặc trưng của nhãn điều kiện
+                    # CFG Formula
                     noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_cond - noise_pred_uncond)
-                    
                     latents = scheduler.step(noise_pred, t, latents).prev_sample
             
-            # B. Giải nén Latent thành Pixels bằng VAE Decoder
+            # B. Decode Latents to Pixels using VAE Decoder
             with torch.no_grad():
-                images = vae.vae.decode(latents).sample
+                images_tensor = vae.vae.decode(latents).sample
                 
-            # C. Hậu xử lý
-            images = (images / 2 + 0.5).clamp(0, 1)
-            images = (images.cpu().numpy() * 255).astype(np.uint8)
-            images = images.squeeze(1) # (batch, 128, 128)
+            # C. Post-process
+            images_clamped = (images_tensor / 2 + 0.5).clamp(0, 1)
+            images_np: np.ndarray = (images_clamped.cpu().numpy() * 255).astype(np.uint8)
+            images_np = images_np.squeeze(1) # (batch, 128, 128)
             
-            all_images.append(images)
+            all_images.append(images_np)
             all_labels.extend([label] * batch_size)
             
-    all_images = np.concatenate(all_images, axis=0)
-    all_labels = np.array(all_labels)
+    all_images_np: np.ndarray = np.concatenate(all_images, axis=0)
+    all_labels_np: np.ndarray = np.array(all_labels)
     
     os.makedirs(os.path.dirname(output_npz), exist_ok=True)
-    np.savez_compressed(output_npz, images=all_images, labels=all_labels)
-    print(f"Success! Generated {len(all_images)} images saved to {output_npz}")
+    np.savez_compressed(output_npz, images=all_images_np, labels=all_labels_np)
+    print(f"Success! Generated {len(all_images_np)} images saved to {output_npz}")
 
 if __name__ == "__main__":
     import argparse

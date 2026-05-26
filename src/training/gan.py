@@ -3,23 +3,24 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import transforms, utils
-import numpy as np
 import os
 from src.models.gan import Generator, Discriminator
-from src.train_diffusion import MedMNISTProcessed
+from src.data.dataset import MedMNISTProcessed
 from src.utils.logger import setup_logger
 from tqdm.auto import tqdm
-from PIL import Image
 
-def train_gan():
+def train_gan() -> None:
+    """
+    Trains the Generative Adversarial Network (GAN).
+    """
     # Config
-    lr = 0.0002
-    beta1 = 0.5
-    num_epochs = 100
-    batch_size = 32
-    latent_dim = 100
-    img_size = 128
-    output_dir = "artifacts/gan_v1"
+    lr: float = 0.0002
+    beta1: float = 0.5
+    num_epochs: int = 100
+    batch_size: int = 32
+    latent_dim: int = 100
+    img_size: int = 128
+    output_dir: str = "artifacts/gan_v1"
     os.makedirs(output_dir, exist_ok=True)
     
     logger = setup_logger('gan_logger', 'logs/train_gan.log')
@@ -43,12 +44,12 @@ def train_gan():
     dataset = MedMNISTProcessed('data/processed/train_10.npz', transform=transform)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-    real_label = 1.
-    fake_label = 0.
+    real_label: float = 1.0
+    fake_label: float = 0.0
 
     for epoch in range(num_epochs):
         for i, (data, labels) in enumerate(dataloader):
-            bs = data.size(0)
+            bs: int = data.size(0)
             data = data.to(device)
             labels = labels.to(device)
 
@@ -73,7 +74,7 @@ def train_gan():
             optimizerG.step()
 
         if (epoch + 1) % 50 == 0:
-            logger.info(f"Epoch {epoch} Loss_D: {errD_real+errD_fake:.4f} Loss_G: {errG:.4f}")
+            logger.info(f"Epoch {epoch} Loss_D: {errD_real.item()+errD_fake.item():.4f} Loss_G: {errG.item():.4f}")
             # Save samples
             utils.save_image(fake.detach()[:16], f"{output_dir}/samples_epoch_{epoch}.png", normalize=True)
 

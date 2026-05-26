@@ -4,7 +4,10 @@ from cleanfid import fid
 from PIL import Image
 import shutil
 
-def calculate_fid(real_npz, synth_npz, tmp_dir='tmp_fid'):
+def calculate_fid(real_npz: str, synth_npz: str, tmp_dir: str = 'tmp_fid') -> float:
+    """
+    Calculates the Frechet Inception Distance (FID) score between real and synthetic image distributions.
+    """
     # clean-fid expects directories of images
     real_dir = os.path.join(tmp_dir, 'real')
     synth_dir = os.path.join(tmp_dir, 'synth')
@@ -13,17 +16,17 @@ def calculate_fid(real_npz, synth_npz, tmp_dir='tmp_fid'):
     os.makedirs(synth_dir, exist_ok=True)
     
     # Save real images
-    real_data = np.load(real_npz)['images']
+    real_data: np.ndarray = np.load(real_npz)['images']
     for i, img in enumerate(real_data):
         Image.fromarray(img).save(os.path.join(real_dir, f"{i}.png"))
         
     # Save synth images
-    synth_data = np.load(synth_npz)['images']
+    synth_data: np.ndarray = np.load(synth_npz)['images']
     for i, img in enumerate(synth_data):
         Image.fromarray(img).save(os.path.join(synth_dir, f"{i}.png"))
         
     # Calculate FID
-    score = fid.compute_fid(real_dir, synth_dir)
+    score: float = fid.compute_fid(real_dir, synth_dir)
     print(f"FID Score: {score}")
     
     # Cleanup
@@ -33,8 +36,8 @@ def calculate_fid(real_npz, synth_npz, tmp_dir='tmp_fid'):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--real", type=str, required=True)
-    parser.add_argument("--synth", type=str, required=True)
+    parser.add_argument("--real", type=str, required=True, help="Path to real data .npz file")
+    parser.add_argument("--synth", type=str, required=True, help="Path to synthetic data .npz file")
     args = parser.parse_args()
     
     calculate_fid(args.real, args.synth)
